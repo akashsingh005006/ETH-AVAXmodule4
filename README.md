@@ -206,7 +206,7 @@ function checkBalance() external view returns (uint) {
     }
 ```
 
-### Redeeming Tokens for Items
+### Redeeming Tokens 
 players can redeem their tokens from achievement score and burn according to score.
 
 ```solidity
