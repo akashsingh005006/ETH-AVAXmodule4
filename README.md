@@ -15,7 +15,7 @@ To interact with `DegenAkashToken`:
 
 1. **Set up Remix**
    - Visit [Remix](https://remix.ethereum.org/).
-   - Create a new Solidity file, e.g., `project(module4.sol)`.
+   - Create a new Solidity file, e.g., `project(module4).sol`.
 
 2. **Copy and Paste Code**
    - Insert the contract code into `project(module4).sol`.
