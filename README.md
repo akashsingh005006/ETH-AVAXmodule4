@@ -1,4 +1,4 @@
-# ETH-AVAXmodule4
+# project(module4) ETH-AVAX
 
 ## Description
 
@@ -8,10 +8,10 @@ This Solidity smart contract, DegenAkashToken, is an ERC20 token named "DGNGamin
 ### Prerequisites
 
 - Ensure you have access to an Ethereum-compatible wallet (e.g., MetaMask).
-- Connect to an Ethereum network (e.g., Ropsten, Rinkeby) using Remix or a similar development environment.
+- Connect to an Ethereum network using Remix or a similar development environment.
 
 ### Installation
-To interact with `DegenToken`:
+To interact with `DegenAkashToken`:
 
 1. **Set up Remix**
    - Visit [Remix](https://remix.ethereum.org/).
@@ -124,7 +124,7 @@ After deployment, test the contract on Avalanche Fuji(Snowtrace testnet) Testnet
    - Assigning achievement to player by user through `setplayerAchievement` function.
    - Transfer tokens using the `SendToken` function.
    - Redeem tokens by players using the `Tokenredeem` function.
-   - Burning token internally and publically using 'burn' and 'burnToken' function respectively.
+   - Burning token internally and publically using `burn` and `burnToken` function respectively.
 
 4. **Functionalities Verification**: Verify that all functionalities behave as expected by checking balances, burning token, and token transfers.
 
