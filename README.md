@@ -1,12 +1,4 @@
-### To run the program, follow these steps:
-
-Compile the Code:
-
-Click on the "Solidity Compiler" tab in the left-hand sidebar. Ensure the "Compiler" option is set to a compatible version, such as "0.8.0". Click on the "Compile SrishtiToken.sol" button. Deploy the Contract:
-
-Click on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "SrishtiToken" contract from the dropdown menu. Click on the "Deploy" button. Interact with the Contract:
-
-Minting Tokens: Upon deployment, 100 SR tokens are minted to the contract address. Creating Tokens: Call the createTokens function with the recipient address and quantity to transfer tokens from the contract address to the recipient. This can only be done by the admin. Destroying Tokens: Call the destroyTokens function with the amount to burn tokens from the caller's address.
+### AkashGamingToken
 The AkashGamingToken is an ERC20 token contract for a gaming application. It allows the owner to mint tokens, add new in-game items, and manage token transfers and redemptions. Players can redeem tokens for in-game items, and the contract ensures proper validation of item availability and user balance during transactions. Additionally, the contract supports token burning by any user and includes functions to view item details and check balances.
 
 ### Description
@@ -18,7 +10,7 @@ The AkashGamingToken contract is a smart contract written in Solidity for the Et
 
 Visit Remix: Go to https://remix.ethereum.org/. Create a New File: Click on the "+" icon in the left-hand sidebar to create a new file. Save the File: Save the file with a .sol extension (e.g.,  AkashGamingToken.sol). Copy and Paste Code: Copy and paste the following code into the new file:
 
-```
+```solidity
 pragma solidity ^0.8.0;
 // SPDX-License-Identifier: MIT
 
@@ -104,7 +96,7 @@ contract AkashGamingToken is ERC20, Ownable(msg.sender) {
     }
 }
 
-solidity```
+```
 
 To run the program, follow these steps:
 
@@ -112,6 +104,12 @@ Compile the Code:
 
 Click on the "Solidity Compiler" tab in the left-hand sidebar. Ensure the "Compiler" option is set to a compatible version, such as "0.8.20". Click on the "Compile AkashGamingToken.sol" button. Deploy the Contract:
 
-Click on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "SrishtiToken" contract from the dropdown menu. Click on the "Deploy" button. Interact with the Contract:
+Click on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "AkashGamingToken" contract from the dropdown menu. Click on the "Deploy" button. Interact with the Contract:
 
-Minting Tokens: Upon deployment, 100 SR tokens are minted to the contract address. Creating Tokens: Call the createTokens function with the recipient address and quantity to transfer tokens from the contract address to the recipient. This can only be done by the admin. Destroying Tokens: Call the destroyTokens function with the amount to burn tokens from the caller's address.
+On allocating the 100 ETH token in contract address when contract is deployed .Burn the 10 ETH token from same address and call the check balance by putting same address and verify that token is deducted on not. Initialising Gaming item details in addGameItem and redeem it by putting itemId along with quantity.Transfer token to another address and also verify it in check balance. viewItemdetails: check it is redeemed.
+
+### Author
+Akash Singh
+
+### License
+This project is licensed under the MIT License
