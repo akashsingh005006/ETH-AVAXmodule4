@@ -106,7 +106,7 @@ Click on the "Solidity Compiler" tab in the left-hand sidebar. Ensure the "Compi
 
 Click on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "AkashGamingToken" contract from the dropdown menu. Click on the "Deploy" button. Interact with the Contract:
 
-On allocating the 100 ETH token in contract address when contract is deployed .Burn the 10 ETH token from same address and call the check balance by putting same address and verify that token is deducted on not. Initialising Gaming item details in addGameItem and redeem it by putting itemId along with quantity.Transfer token to another address and also verify it in check balance. viewItemdetails: check it is redeemed.
+Upon deploying the contract, allocate 100 ETH tokens to the contract address. Then, burn 10 ETH tokens from the same address, and call the checkBalance function to verify that the tokens have been deducted. Initialize game item details using addGameItem and redeem an item by specifying the itemId along with the quantity. Transfer tokens to another address and verify the balance using the checkBalance function. Lastly, use viewItemDetails to check if the item has been redeemed.
 
 ### Author
 Akash Singh
