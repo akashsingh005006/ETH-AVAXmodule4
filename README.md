@@ -1,236 +1,84 @@
-# project(module4) ETH-AVAX
-
-## Description
-
-This Solidity smart contract, DegenAkashToken, is an ERC20 token named "DGNGaming" with the symbol "DGN." It inherits from OpenZeppelin's ERC20 and Ownable contracts. The contract allows the owner to mint tokens and assign achievements to players, where each player can have multiple achievements with scores between 0 and 100. Players can check their token balance, transfer tokens to others, and redeem tokens for game rewards based on their achievements. The contract includes functionality for burning tokens, both through an internal burn function and a public function allowing users to burn their tokens directly. The token has no decimal places.
-
-
-### Prerequisites
-
-- Ensure you have access to an Ethereum-compatible wallet (e.g., MetaMask).
-- Connect to an Ethereum network using Remix or a similar development environment.
-
-### Installation
-To interact with `DegenAkashToken`:
-
-1. **Set up Remix**
-   - Visit [Remix](https://remix.ethereum.org/).
-   - Create a new Solidity file, e.g., `project(module4).sol`.
-
-2. **Copy and Paste Code**
-   - Insert the contract code into `project(module4).sol`.
-
-3. **Compile and Deploy**
-   - Compile the code using the "Solidity Compiler" tab.
-   - Deploy the contract using the "Deploy" tab.
-
-### Contract Code
-
-```solidity
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DegenAkashToken is ERC20, Ownable(msg.sender) {
- 
-    struct Player {
-        mapping(string => uint8) achievement; // Game level or achievement name 
+contract AkashGamingToken is ERC20, Ownable(msg.sender) {
+
+    // Event emitted when tokens are redeemed for an item.
+    event Redeem(address indexed from, uint256 itemId);
+
+    // Enum to represent the type of in-game item
+    enum ItemType { Gun, Bullet, Medication, Accessory, Rifle }
+
+    // Struct to represent an ingame item
+    struct GameItem {
+        uint itemId;
+        string name;
+        ItemType categoryNo;
+        uint256 price;   
+        uint quantity;
     }
 
-    // Mapping to store players
-    mapping(address => Player) private players;
+    // Mapping of item ID to item details
+    mapping(uint256 => GameItem) public items;
 
-    // Events for assigning achievements and burning tokens
-    event AchievementAssign(address indexed playerAddress, string achievementRank, uint8 score);
-    event BurnedTokens(address indexed playerAddress, uint256 Tokenamount);
+    uint256 private itemIdGenerator;
 
-    constructor() ERC20("DGNGaming", "DGN") {
-        transferOwnership(msg.sender);
+    constructor() ERC20("AkashGamingToken", "ETH") {}
+
+    function allocateToken(address to, uint256 amount) external onlyOwner {
+        require(amount > 0, "Amount must be > than 0");
+        _mint(to, amount);
     }
 
-    // Assign an achievement to a player
-    function setplayerAchievement(address playerAddress, string memory achievementRank, uint8 score) external onlyOwner {
-        require(score <= 100, "Score must be between 0 and 100");
-        players[playerAddress].achievement[achievementRank] = score;
-        emit AchievementAssign(playerAddress, achievementRank, score);
+    function burnToken(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
+//Allow to add new ingame item
+    function addGameItem(
+        string memory Itemname,
+        ItemType categoryNo,
+        uint256 price ,
+        uint256 quantity
+         ) external onlyOwner {
+        require(price > 0, "Price > than 0");
+        require(quantity > 0, "Stock must be > than 0");
+
+        itemIdGenerator = itemIdGenerator+ 1;
+        items[itemIdGenerator] = GameItem(itemIdGenerator, Itemname, categoryNo, price, quantity);
     }
 
-  
-    function mintToken(address to, uint Tokenamount) public onlyOwner {
-        require(to != address(0), "Invalid address");
-        require(Tokenamount > 0, "Amount must be > zero");
-        _mint(to, Tokenamount);
+    function Tokenredeem(uint256 itemId, uint256 amount) external {
+        GameItem storage item = items[itemId];
+        require(item.itemId != 0, "Item does not exist");
+        require(item.quantity >= amount, "Item out of stock");
+
+        uint256 Totalprice = item.price * amount;
+        require(balanceOf(msg.sender) >= Totalprice, "Insufficient balance");
+
+       
+        _burn(msg.sender, Totalprice);
+        item.quantity = item.quantity-amount;
+
+        emit Redeem(msg.sender, itemId);
     }
 
-  
-    function decimals() public pure override returns (uint8) {
-        return 0;
+    function viewItemDetails(uint256 itemId) external view returns (uint , string memory, ItemType, uint256, uint) {
+        GameItem memory item = items[itemId];
+        require(item.itemId != 0, "Item does not exist");
+        return (item.itemId, item.name, item.categoryNo, item.price, item.quantity);
     }
 
-    function checkBalance() external view returns (uint) {
+    function checkBalance()public view returns(uint){
         return balanceOf(msg.sender);
     }
 
-    // Transfer tokens to another address
-    function SendToken(address receiver, uint Tokenamount) external {
-        require(receiver != address(0), "Invalid receiver address");
-        require(balanceOf(msg.sender) >= Tokenamount, "Not enough tokens");
-        _transfer(msg.sender, receiver, Tokenamount);
-    }
+    // Function to transfer tokens to another address
+    function TokenTransfer(address to, uint256 amount) external {
+        require(balanceOf(msg.sender) >= amount, "Insufficient Balance");
 
-    // Redeem tokens for game rewards
-    function Tokenredeem(string memory achievementRank) external {
-        require(balanceOf(msg.sender) > 0, "Insufficient tokens to redeem");
-        uint8 score = players[msg.sender].achievement[achievementRank];
-        require(score > 0, "Player must have at least one achievement assigned ");
-
-        if (score > 90) {
-            burn(30);
-        } else if (score > 80) {
-            burn(25);
-        } else if (score > 70) {
-            burn(20);
-        } else if (score > 60) {
-            burn(10);
-        } else {
-            burn(5);
-        }
-    }
-
-    // Burn tokens internal from the caller's balance
-    function burn(uint Tokenamount) internal {
-        require(Tokenamount > 0, "Amount must be > zero");
-        require(balanceOf(msg.sender) >= Tokenamount, "Don't have enough tokens");
-        _burn(msg.sender, Tokenamount);
-        emit BurnedTokens(msg.sender, Tokenamount);
-    }
-
-    // Public function to burn tokens from the caller's balance
-    function burnToken(uint Tokenamount) external {
-        burn(Tokenamount);
+        _transfer(msg.sender, to, amount);
     }
 }
-```
-## Executing program
-
-After deployment, test the contract on Avalanche Fuji(Snowtrace testnet) Testnet:
-
-1. **Use Tools**: Use tools like Remix  to interact with the deployed contract.
-   
-2. **Execute Transactions**: Execute transactions to perform the following actions:
-   - Mint tokens using the `mintToken` function.
-   - Assigning achievement to player by user through `setplayerAchievement` function.
-   - Transfer tokens using the `SendToken` function.
-   - Redeem tokens by players using the `Tokenredeem` function.
-   - Burning token internally and publically using `burn` and `burnToken` function respectively.
-
-4. **Functionalities Verification**: Verify that all functionalities behave as expected by checking balances, burning token, and token transfers.
-
-## Verifying the Smart Contract on Snowtrace
-
-To verify the contract on Snowtrace:
-
-1. **Obtain Contract Address**: After deploying the contract on Avalanche Fuji Testnet, obtain the contract address from the deployment transaction.
-
-2. **Visit Snowtrace**: Go to [Snowtrace](https://snowtrace.io/).
-
-3. **Verify Contract Details**:
-   - Enter the contract address in the search bar on Snowtrace.
-   - Verify contract details including source code, functions, events, and contract status.
-     
-4.**performing all transaction**:
-
-   - transaction perform on all the function like mint ,setplayerAchievement,redeem etc.
-   - verify all these transation in snowtrace testnet.
-
-     ## Usage
-
- ### Setting players Achievement
-  Assign achievement to player
-  
- ```solidity
- function setplayerAchievement(address playerAddress, string memory achievementRank, uint8 score) external onlyOwner {
-        require(score <= 100, "Score must be between 0 and 100");
-        players[playerAddress].achievement[achievementRank] = score;
-        emit AchievementAssign(playerAddress, achievementRank, score);
-    }
- ```
-     
-### Minting Tokens
-
-Only the contract owner can mint new tokens.
-
-```solidity
-
-    function mintToken(address to, uint Tokenamount) public onlyOwner {
-        require(to != address(0), "Invalid address");
-        require(Tokenamount > 0, "Amount must be > zero");
-        _mint(to, Tokenamount);
-    }
-```
-### Transferring Tokens
-Transfer tokens to another address.
-
-```solidity
- function SendToken(address receiver, uint Tokenamount) external {
-        require(receiver != address(0), "Invalid receiver address");
-        require(balanceOf(msg.sender) >= Tokenamount, "Not enough tokens");
-        _transfer(msg.sender, receiver, Tokenamount);
-    }
-```
-### Burning Tokens
-Burn tokens, from internal and public burn function.
-
-```solidity
-// internal function to burn token
-function burn(uint Tokenamount) internal {
-        require(Tokenamount > 0, "Amount must be > zero");
-        require(balanceOf(msg.sender) >= Tokenamount, "Don't have enough tokens");
-        _burn(msg.sender, Tokenamount);
-        emit BurnedTokens(msg.sender, Tokenamount);
-    }
-
-    // Public function to burn tokens from the caller's balance
-    function burnToken(uint Tokenamount) external {
-        burn(Tokenamount);
-    }
-```
-### checking balance
-check balance from caller's address
-
-```solidity
-function checkBalance() external view returns (uint) {
-        return balanceOf(msg.sender);
-    }
-```
-
-### Redeeming Tokens 
-players can redeem their tokens from achievement score and burn according to score.
-
-```solidity
-function Tokenredeem(string memory achievementRank) external {
-        require(balanceOf(msg.sender) > 0, "Insufficient tokens to redeem");
-        uint8 score = players[msg.sender].achievement[achievementRank];
-        require(score > 0, "Player must have at least one achievement assigned ");
-
-        if (score > 90) {
-            burn(30);
-        } else if (score > 80) {
-            burn(25);
-        } else if (score > 70) {
-            burn(20);
-        } else if (score > 60) {
-            burn(10);
-        } else {
-            burn(5);
-        }
-    }
-```
-
-### Author
-Akash Singh
-
-### License
-This project is licensed under the MIT License.
