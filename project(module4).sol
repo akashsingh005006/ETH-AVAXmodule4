@@ -1,85 +1,84 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DegenAkashToken is ERC20, Ownable(msg.sender) {
- 
-    struct Player {
-        mapping(string => uint8) achievement; // Game level or achievement name 
+contract AkashGamingToken is ERC20, Ownable(msg.sender) {
+
+    // Event emitted when tokens are redeemed for an item.
+    event Redeem(address indexed from, uint256 itemId);
+
+    // Enum to represent the type of in-game item
+    enum ItemType { Gun, Bullet, Medication, Accessory, Rifle }
+
+    // Struct to represent an ingame item
+    struct GameItem {
+        uint itemId;
+        string name;
+        ItemType categoryNo;
+        uint256 price;   
+        uint quantity;
     }
 
-    // Mapping to store players
-    mapping(address => Player) private players;
+    // Mapping of item ID to item details
+    mapping(uint256 => GameItem) public items;
 
-    // Events for assigning achievements and burning tokens
-    event AchievementAssign(address indexed playerAddress, string achievementRank, uint8 score);
-    event BurnedTokens(address indexed playerAddress, uint256 Tokenamount);
+    uint256 private itemIdGenerator;
 
-    constructor() ERC20("DGNGaming", "DGN") {
-        transferOwnership(msg.sender);
+    constructor() ERC20("AkashGamingToken", "ETH") {}
+
+    function allocateToken(address to, uint256 amount) external onlyOwner {
+        require(amount > 0, "Amount must be > than 0");
+        _mint(to, amount);
     }
 
-    // Assign an achievement to a player
-    function setplayerAchievement(address playerAddress, string memory achievementRank, uint8 score) external onlyOwner {
-        require(score <= 100, "Score must be between 0 and 100");
-        players[playerAddress].achievement[achievementRank] = score;
-        emit AchievementAssign(playerAddress, achievementRank, score);
+    function burnToken(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
+//Allow to add new ingame item
+    function addGameItem(
+        string memory Itemname,
+        ItemType categoryNo,
+        uint256 price ,
+        uint256 quantity
+         ) external onlyOwner {
+        require(price > 0, "Price > than 0");
+        require(quantity > 0, "Stock must be > than 0");
+
+        itemIdGenerator = itemIdGenerator+ 1;
+        items[itemIdGenerator] = GameItem(itemIdGenerator, Itemname, categoryNo, price, quantity);
     }
 
-  
-    function mintToken(address to, uint Tokenamount) public onlyOwner {
-        require(to != address(0), "Invalid address");
-        require(Tokenamount > 0, "Amount must be > zero");
-        _mint(to, Tokenamount);
+    function Tokenredeem(uint256 itemId, uint256 amount) external {
+        GameItem storage item = items[itemId];
+        require(item.itemId != 0, "Item does not exist");
+        require(item.quantity >= amount, "Item out of stock");
+
+        uint256 Totalprice = item.price * amount;
+        require(balanceOf(msg.sender) >= Totalprice, "Insufficient balance");
+
+       
+        _burn(msg.sender, Totalprice);
+        item.quantity = item.quantity-amount;
+
+        emit Redeem(msg.sender, itemId);
     }
 
-  
-    function decimals() public pure override returns (uint8) {
-        return 0;
+    function viewItemDetails(uint256 itemId) external view returns (uint , string memory, ItemType, uint256, uint) {
+        GameItem memory item = items[itemId];
+        require(item.itemId != 0, "Item does not exist");
+        return (item.itemId, item.name, item.categoryNo, item.price, item.quantity);
     }
 
-    function checkBalance() external view returns (uint) {
+    function checkBalance()public view returns(uint){
         return balanceOf(msg.sender);
     }
 
-    // Transfer tokens to another address
-    function SendToken(address receiver, uint Tokenamount) external {
-        require(receiver != address(0), "Invalid receiver address");
-        require(balanceOf(msg.sender) >= Tokenamount, "Not enough tokens");
-        _transfer(msg.sender, receiver, Tokenamount);
-    }
+    // Function to transfer tokens to another address
+    function TokenTransfer(address to, uint256 amount) external {
+        require(balanceOf(msg.sender) >= amount, "Insufficient Balance");
 
-    // Redeem tokens for game rewards
-    function Tokenredeem(string memory achievementRank) external {
-        require(balanceOf(msg.sender) > 0, "Insufficient tokens to redeem");
-        uint8 score = players[msg.sender].achievement[achievementRank];
-        require(score > 0, "Player must have at least one achievement assigned ");
-
-        if (score > 90) {
-            burn(30);
-        } else if (score > 80) {
-            burn(25);
-        } else if (score > 70) {
-            burn(20);
-        } else if (score > 60) {
-            burn(10);
-        } else {
-            burn(5);
-        }
-    }
-
-    // Burn tokens internal from the caller's balance
-    function burn(uint Tokenamount) internal {
-        require(Tokenamount > 0, "Amount must be > zero");
-        require(balanceOf(msg.sender) >= Tokenamount, "Don't have enough tokens");
-        _burn(msg.sender, Tokenamount);
-        emit BurnedTokens(msg.sender, Tokenamount);
-    }
-
-    // Public function to burn tokens from the caller's balance
-    function burnToken(uint Tokenamount) external {
-        burn(Tokenamount);
+        _transfer(msg.sender, to, amount);
     }
 }
